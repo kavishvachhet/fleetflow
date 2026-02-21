@@ -114,7 +114,7 @@ const Vehicles = () => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex justify-between items-center bg-white/40 p-4 rounded-xl backdrop-blur-sm border border-white/50 shadow-sm">
                 <h1 className="text-3xl font-bold text-slate-900 font-heading tracking-tight drop-shadow-sm">Vehicle Registry</h1>
-                {user?.role === 'Admin' && (
+                {user?.role === 'Manager' && (
                     <button onClick={() => { closeModal(); setIsAddOpen(true); }} className="premium-btn px-4 py-2 rounded-lg flex items-center shadow-sm">
                         <Plus className="w-4 h-4 mr-2" /> Add Vehicle
                     </button>
@@ -132,7 +132,7 @@ const Vehicles = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Capacity</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Odometer</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
-                                {user?.role === 'Admin' && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
+                                {user?.role === 'Manager' && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -168,7 +168,7 @@ const Vehicles = () => {
                                                 {vehicle.status}
                                             </span>
                                         </td>
-                                        {user?.role === 'Admin' && (
+                                        {user?.role === 'Manager' && (
                                             <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                                 <button onClick={() => handleEdit(vehicle)} className="text-blue-600 hover:text-blue-900 mx-2" title="Edit"><Edit2 className="w-4 h-4" /></button>
                                                 <button onClick={() => toggleRetire(vehicle)} className="text-amber-600 hover:text-amber-900 mx-2" title={vehicle.status === 'Out of Service' ? 'Reactivate' : 'Retire'}><PowerOff className="w-4 h-4" /></button>
@@ -209,7 +209,7 @@ const Vehicles = () => {
                             />
 
                             <div><label className="block text-sm font-medium text-gray-700">Max Capacity (kg)</label><input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="500" value={formData.maxCapacity} onChange={e => setFormData({ ...formData, maxCapacity: e.target.value })} /></div>
-                            <div><label className="block text-sm font-medium text-gray-700">Acquisition Cost ($)</label><input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="45000" value={formData.acquisitionCost} onChange={e => setFormData({ ...formData, acquisitionCost: e.target.value })} /></div>
+                            <div><label className="block text-sm font-medium text-gray-700">Acquisition Cost (₹)</label><input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" placeholder="45000" value={formData.acquisitionCost} onChange={e => setFormData({ ...formData, acquisitionCost: e.target.value })} /></div>
                             <div className="flex justify-end space-x-3 mt-6">
                                 <button type="button" onClick={closeModal} className="px-4 py-2 text-gray-700 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">Cancel</button>
                                 <button type="submit" className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">{isEdit ? 'Update Vehicle' : 'Save Vehicle'}</button>

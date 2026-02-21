@@ -306,7 +306,7 @@ const Trips = () => {
                                     <input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.cargoWeight} onChange={e => setFormData({ ...formData, cargoWeight: e.target.value })} />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-medium text-gray-700">Estimated Revenue ($)</label>
+                                    <label className="block text-sm font-medium text-gray-700">Estimated Revenue (₹)</label>
                                     <input type="number" required className="mt-1 w-full border border-gray-300 rounded-md p-2 focus:ring-blue-500 focus:border-blue-500" value={formData.revenue} onChange={e => setFormData({ ...formData, revenue: e.target.value })} />
                                 </div>
                             </div>
