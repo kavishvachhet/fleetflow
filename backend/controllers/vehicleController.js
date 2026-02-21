@@ -11,8 +11,16 @@ export const getVehicles = async (req, res) => {
 
 export const createVehicle = async (req, res) => {
     try {
-        const { name, model, licensePlate, maxCapacity, odometer, category } = req.body;
-        const vehicle = new Vehicle({ name, model, licensePlate, maxCapacity, odometer, category });
+        const { name, model, licensePlate, maxCapacity, odometer, category, acquisitionCost } = req.body;
+        const vehicle = new Vehicle({
+            name,
+            model,
+            licensePlate,
+            maxCapacity,
+            odometer: odometer ? Number(odometer) : 0,
+            category,
+            acquisitionCost: acquisitionCost ? Number(acquisitionCost) : 0
+        });
         await vehicle.save();
         res.status(201).json(vehicle);
     } catch (error) {
