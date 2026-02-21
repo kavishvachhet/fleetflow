@@ -2,12 +2,12 @@ import { useState, useContext } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Truck } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Register = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [role, setRole] = useState('Dispatcher');
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     const { register } = useContext(AuthContext);
@@ -15,14 +15,11 @@ const Register = () => {
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         setLoading(true);
 
         const result = await register(email, password, role);
         if (result.success) {
-            navigate('/login', { state: { message: 'Registration successful! Please sign in.' } });
-        } else {
-            setError(result.message || 'Registration failed');
+            navigate('/login');
         }
         setLoading(false);
     };
@@ -34,7 +31,12 @@ const Register = () => {
             <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
             <div className="absolute bottom-[-10%] left-[20%] w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
 
-            <div className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full max-w-md relative z-10"
+            >
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center p-4 bg-white rounded-2xl shadow-xl shadow-blue-500/10 mb-6 border border-white/50 transform hover:scale-105 transition-transform">
                         <Truck className="h-10 w-10 text-blue-600" />
@@ -49,13 +51,7 @@ const Register = () => {
 
                 <div className="glass-panel p-8 sm:p-10">
                     <form className="space-y-6" onSubmit={handleSubmit}>
-                        {error && (
-                            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl">
-                                <p className="text-sm font-medium text-red-800">{error}</p>
-                            </div>
-                        )}
-
-                        <div>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.1 }}>
                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                                 Email Address
                             </label>
@@ -67,9 +63,9 @@ const Register = () => {
                                 className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all shadow-sm placeholder-slate-400 text-slate-900"
                                 placeholder="name@fleetflow.com"
                             />
-                        </div>
+                        </motion.div>
 
-                        <div>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}>
                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                                 Secure Password
                             </label>
@@ -82,9 +78,9 @@ const Register = () => {
                                 className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all shadow-sm placeholder-slate-400 text-slate-900"
                                 placeholder="••••••••"
                             />
-                        </div>
+                        </motion.div>
 
-                        <div>
+                        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}>
                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                                 Desired Role
                             </label>
@@ -99,15 +95,21 @@ const Register = () => {
                                 <option value="Safety Officer">Safety Officer</option>
                                 <option value="Financial Analyst">Financial Analyst</option>
                             </select>
-                        </div>
+                        </motion.div>
 
-                        <div className="flex items-center justify-center pt-2">
+                        <motion.div
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+                            className="flex items-center justify-center pt-2"
+                        >
                             <Link to="/login" className="text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors">
                                 Already have an account? Sign in
                             </Link>
-                        </div>
+                        </motion.div>
 
-                        <div className="pt-2">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+                            className="pt-2"
+                        >
                             <button
                                 type="submit"
                                 disabled={loading}
@@ -115,10 +117,10 @@ const Register = () => {
                             >
                                 {loading ? 'Registering...' : 'Complete Registration'}
                             </button>
-                        </div>
+                        </motion.div>
                     </form>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };

@@ -1,18 +1,29 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { Truck, AlertTriangle, Activity, Package } from 'lucide-react';
 import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, BarChart, Bar, Legend } from 'recharts';
+import { AuthContext } from '../context/AuthContext';
+import { motion } from 'framer-motion';
+import AnimatedOdometer from '../components/AnimatedOdometer';
+import SafetyDashboard from '../components/SafetyDashboard';
 
-const StatCard = ({ title, value, icon: Icon, colorClass, gradientClass }) => (
-    <div className="glass-panel p-6 flex items-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 group">
+const StatCard = ({ title, value, icon: Icon, colorClass, gradientClass, label = "" }) => (
+    <motion.div
+        initial={{ opacity: 0, scale: 0.9 }}
+        animate={{ opacity: 1, scale: 1 }}
+        transition={{ duration: 0.5, type: 'spring' }}
+        className="glass-panel p-6 flex items-center transition-all duration-300 hover:shadow-2xl hover:-translate-y-1 group"
+    >
         <div className={`p-4 rounded-xl ${colorClass} bg-gradient-to-br ${gradientClass} mr-6 shadow-inner group-hover:scale-110 transition-transform duration-300`}>
             <Icon className="w-8 h-8 text-white" />
         </div>
         <div>
-            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider">{title}</p>
-            <p className="mt-1 text-4xl font-bold text-slate-800 font-heading">{value}</p>
+            <p className="text-sm font-medium text-slate-500 uppercase tracking-wider mb-2">{title}</p>
+            <div className="scale-75 origin-left">
+                <AnimatedOdometer value={value} label={label} padCount={3} />
+            </div>
         </div>
-    </div>
+    </motion.div>
 );
 
 const Dashboard = () => {
@@ -24,11 +35,12 @@ const Dashboard = () => {
         utilizationRate: 0
     });
     const [loading, setLoading] = useState(true);
+    const { user } = useContext(AuthContext);
 
     useEffect(() => {
         const fetchStats = async () => {
             try {
-                const res = await axios.get('http://localhost:5000/api/analytics/dashboard');
+                const res = await axios.get(`${import.meta.env.VITE_API_URL}/analytics/dashboard`);
                 setStats(res.data);
             } catch (error) {
                 console.error('Error fetching dashboard stats', error);
@@ -44,6 +56,10 @@ const Dashboard = () => {
 
     const healthData = stats.healthData || [];
     const tripsData = stats.tripsData || [];
+
+    if (user?.role === 'Safety Officer') {
+        return <SafetyDashboard />;
+    }
 
     return (
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
@@ -64,13 +80,19 @@ const Dashboard = () => {
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <motion.div
+                className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                transition={{ staggerChildren: 0.1 }}
+            >
                 <StatCard
                     title="Active Fleet"
                     value={stats.activeVehicles}
                     icon={Truck}
                     colorClass="text-white backdrop-blur-md"
                     gradientClass="from-blue-500 to-indigo-600 shadow-blue-500/50"
+                    label="Vans"
                 />
                 <StatCard
                     title="In Shop"
@@ -78,13 +100,15 @@ const Dashboard = () => {
                     icon={AlertTriangle}
                     colorClass="text-white backdrop-blur-md"
                     gradientClass="from-red-500 to-rose-600 shadow-red-500/50"
+                    label="Units"
                 />
                 <StatCard
                     title="Utilization"
-                    value={`${stats.utilizationRate}%`}
+                    value={stats.utilizationRate}
                     icon={Activity}
                     colorClass="text-white backdrop-blur-md"
                     gradientClass="from-emerald-400 to-green-600 shadow-green-500/50"
+                    label="%"
                 />
                 <StatCard
                     title="Pending Trips"
@@ -92,8 +116,9 @@ const Dashboard = () => {
                     icon={Package}
                     colorClass="text-white backdrop-blur-md"
                     gradientClass="from-amber-400 to-orange-500 shadow-orange-500/50"
+                    label="Active"
                 />
-            </div>
+            </motion.div>
 
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mt-8">
                 <div className="glass-panel p-6 h-96 flex flex-col">

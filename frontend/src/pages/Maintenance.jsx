@@ -1,7 +1,9 @@
 import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { Plus, Wrench } from 'lucide-react';
+import { Plus, Wrench, CheckCircle, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import AnimatedModal from '../components/AnimatedModal';
 
 const Maintenance = () => {
     const [logs, setLogs] = useState([]);
@@ -12,13 +14,15 @@ const Maintenance = () => {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
     const [editId, setEditId] = useState(null);
+    const [deleteConfirmId, setDeleteConfirmId] = useState(null);
+    const [completeConfirmId, setCompleteConfirmId] = useState(null);
     const [formData, setFormData] = useState({ vehicleId: '', description: '', cost: '', date: new Date().toISOString().split('T')[0] });
 
     const fetchData = async () => {
         try {
             const [logsRes, vehiclesRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/maintenance'),
-                axios.get('http://localhost:5000/api/vehicles')
+                axios.get(`${import.meta.env.VITE_API_URL}/maintenance`),
+                axios.get(`${import.meta.env.VITE_API_URL}/vehicles`)
             ]);
             setLogs(logsRes.data);
             setVehicles(vehiclesRes.data);
@@ -37,24 +41,39 @@ const Maintenance = () => {
         e.preventDefault();
         try {
             if (isEdit) {
-                await axios.put(`http://localhost:5000/api/maintenance/${editId}`, formData);
+                await axios.put(`${import.meta.env.VITE_API_URL}/maintenance/${editId}`, formData);
             } else {
-                await axios.post('http://localhost:5000/api/maintenance', formData);
+                await axios.post(`${import.meta.env.VITE_API_URL}/maintenance`, formData);
             }
             closeModal();
             fetchData();
+            toast.success(`Maintenance ${isEdit ? 'updated' : 'logged'} successfully`);
         } catch (error) {
-            alert(error.response?.data?.message || `Error ${isEdit ? 'updating' : 'logging'} maintenance`);
+            toast.error(error.response?.data?.message || `Error ${isEdit ? 'updating' : 'logging'} maintenance`);
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this maintenance log?")) return;
+    const handleDelete = async () => {
+        if (!deleteConfirmId) return;
         try {
-            await axios.delete(`http://localhost:5000/api/maintenance/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/maintenance/${deleteConfirmId}`);
             fetchData();
+            setDeleteConfirmId(null);
+            toast.success('Maintenance log deleted successfully');
         } catch (error) {
-            alert(error.response?.data?.message || 'Error deleting log');
+            toast.error(error.response?.data?.message || 'Error deleting log');
+        }
+    };
+
+    const handleComplete = async () => {
+        if (!completeConfirmId) return;
+        try {
+            await axios.post(`${import.meta.env.VITE_API_URL}/maintenance/${completeConfirmId}/complete`);
+            fetchData();
+            setCompleteConfirmId(null);
+            toast.success('Maintenance completed! Expense logged and vehicle is available.');
+        } catch (error) {
+            toast.error(error.response?.data?.message || 'Error completing maintenance');
         }
     };
 
@@ -84,7 +103,7 @@ const Maintenance = () => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex justify-between items-center bg-white/40 p-4 rounded-xl backdrop-blur-sm border border-white/50 shadow-sm">
                 <h1 className="text-3xl font-bold text-slate-900 font-heading tracking-tight drop-shadow-sm">Maintenance Logs</h1>
-                {(user?.role === 'Manager' || user?.role === 'Dispatcher') && (
+                {user?.role === 'Dispatcher' && (
                     <button onClick={() => { closeModal(); setIsAddOpen(true); }} className="premium-btn px-4 py-2 rounded-lg flex items-center shadow-sm">
                         <Plus className="w-4 h-4 mr-2" /> Log Service
                     </button>
@@ -100,7 +119,7 @@ const Maintenance = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Vehicle</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Description</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost ($)</th>
-                                {user?.role === 'Manager' && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
+                                {user?.role === 'Dispatcher' && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -117,17 +136,22 @@ const Maintenance = () => {
                                     </td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{log.description}</td>
                                     <td className="px-6 py-4 whitespace-nowrap text-sm font-semibold text-gray-900">${log.cost.toFixed(2)}</td>
-                                    {user?.role === 'Manager' && (
+                                    {user?.role === 'Dispatcher' && (
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
+                                            <button onClick={() => setCompleteConfirmId(log._id)} className="text-emerald-600 hover:text-emerald-900 mx-2 inline-flex items-center" title="Complete Maintenance">
+                                                <CheckCircle className="w-4 h-4 mr-1" /> Complete
+                                            </button>
                                             <button onClick={() => handleEdit(log)} className="text-blue-600 hover:text-blue-900 mx-2" title="Edit Log">Edit</button>
-                                            <button onClick={() => handleDelete(log._id)} className="text-red-600 hover:text-red-900 mx-2" title="Delete Log">Delete</button>
+                                            <button onClick={() => setDeleteConfirmId(log._id)} className="text-red-600 hover:text-red-900 mx-2 inline-flex items-center" title="Delete Log">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
                                         </td>
                                     )}
                                 </tr>
                             ))}
                             {logs.length === 0 && (
                                 <tr>
-                                    <td colSpan={user?.role === 'Manager' ? "5" : "4"} className="px-6 py-8 text-center text-gray-500">No maintenance logs found.</td>
+                                    <td colSpan={user?.role === 'Dispatcher' ? "5" : "4"} className="px-6 py-8 text-center text-gray-500">No maintenance logs found.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -167,6 +191,36 @@ const Maintenance = () => {
                     </div>
                 </div>
             )}
+
+            <AnimatedModal
+                isOpen={deleteConfirmId !== null}
+                onClose={() => setDeleteConfirmId(null)}
+                title="Delete Maintenance Log"
+                type="danger"
+            >
+                <div className="space-y-6">
+                    <p className="text-slate-600">Are you sure you want to delete this maintenance entry? This action cannot be undone.</p>
+                    <div className="flex justify-end space-x-3">
+                        <button onClick={() => setDeleteConfirmId(null)} className="px-4 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors font-medium">Cancel</button>
+                        <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm shadow-red-500/30">Delete Log</button>
+                    </div>
+                </div>
+            </AnimatedModal>
+
+            <AnimatedModal
+                isOpen={completeConfirmId !== null}
+                onClose={() => setCompleteConfirmId(null)}
+                title="Complete Maintenance"
+                type="confirm"
+            >
+                <div className="space-y-6">
+                    <p className="text-slate-600">Mark this maintenance as completed? This will create an Expense log and make the Vehicle Available again.</p>
+                    <div className="flex justify-end space-x-3">
+                        <button onClick={() => setCompleteConfirmId(null)} className="px-4 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors font-medium">Cancel</button>
+                        <button onClick={handleComplete} className="px-4 py-2 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors font-medium shadow-sm shadow-emerald-500/30">Complete Maintenance</button>
+                    </div>
+                </div>
+            </AnimatedModal>
         </div>
     );
 };

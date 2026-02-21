@@ -7,11 +7,11 @@ const router = express.Router();
 router.use(protect);
 
 router.route('/')
-    .get(getDrivers)
+    .get(authorize('Manager', 'Safety Officer', 'Dispatcher'), getDrivers)
     .post(authorize('Manager', 'Safety Officer'), createDriver);
 
 router.route('/:id')
     .put(authorize('Manager', 'Safety Officer'), updateDriver)
-    .delete(authorize('Manager'), deleteDriver);
+    .delete(authorize('Manager', 'Safety Officer'), deleteDriver);
 
 export default router;

@@ -2,12 +2,11 @@ import { useState, useContext, useEffect } from 'react';
 import { useNavigate, Link, useLocation } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Truck } from 'lucide-react';
+import { motion } from 'framer-motion';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
-    const [error, setError] = useState('');
-    const [successMsg, setSuccessMsg] = useState('');
     const [loading, setLoading] = useState(false);
 
     const { login } = useContext(AuthContext);
@@ -15,23 +14,19 @@ const Login = () => {
     const location = useLocation();
 
     useEffect(() => {
-        if (location.state?.message) {
-            setSuccessMsg(location.state.message);
-            // Clear state gracefully without full reload
+        // Clear history state if present
+        if (location.state) {
             navigate(location.pathname, { replace: true, state: {} });
         }
     }, [location, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-        setError('');
         setLoading(true);
 
         const success = await login(email, password);
         if (success) {
             navigate('/');
-        } else {
-            setError('Invalid email or password');
         }
         setLoading(false);
     };
@@ -43,7 +38,12 @@ const Login = () => {
             <div className="absolute top-[20%] right-[-10%] w-96 h-96 bg-indigo-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
             <div className="absolute bottom-[-10%] left-[20%] w-96 h-96 bg-emerald-400 rounded-full mix-blend-multiply filter blur-3xl opacity-20"></div>
 
-            <div className="w-full max-w-md relative z-10 animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <motion.div
+                initial={{ opacity: 0, y: 30 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.7, ease: [0.22, 1, 0.36, 1] }}
+                className="w-full max-w-md relative z-10"
+            >
                 <div className="text-center mb-8">
                     <div className="inline-flex items-center justify-center p-4 bg-white rounded-2xl shadow-xl shadow-blue-500/10 mb-6 border border-white/50 transform hover:scale-105 transition-transform">
                         <Truck className="h-10 w-10 text-blue-600" />
@@ -58,18 +58,9 @@ const Login = () => {
 
                 <div className="glass-panel p-8 sm:p-10">
                     <form className="space-y-6" onSubmit={handleSubmit}>
-                        {successMsg && (
-                            <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl">
-                                <p className="text-sm font-medium text-emerald-800">{successMsg}</p>
-                            </div>
-                        )}
-                        {error && (
-                            <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl">
-                                <p className="text-sm font-medium text-red-800">{error}</p>
-                            </div>
-                        )}
-
-                        <div>
+                        <motion.div
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.2 }}
+                        >
                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                                 Email Address
                             </label>
@@ -81,9 +72,11 @@ const Login = () => {
                                 className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all shadow-sm placeholder-slate-400 text-slate-900"
                                 placeholder="name@fleetflow.com"
                             />
-                        </div>
+                        </motion.div>
 
-                        <div>
+                        <motion.div
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.3 }}
+                        >
                             <label className="block text-sm font-semibold text-slate-700 mb-1.5">
                                 Secure Password
                             </label>
@@ -95,18 +88,24 @@ const Login = () => {
                                 className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all shadow-sm placeholder-slate-400 text-slate-900"
                                 placeholder="••••••••"
                             />
-                        </div>
+                        </motion.div>
 
-                        <div className="flex items-center justify-between pt-2">
+                        <motion.div
+                            initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.4 }}
+                            className="flex items-center justify-between pt-2"
+                        >
                             <Link to="/register" className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors">
                                 Create an account
                             </Link>
                             <Link to="/forgot-password" className="text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors">
                                 Forgot password?
                             </Link>
-                        </div>
+                        </motion.div>
 
-                        <div className="pt-2">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.5 }}
+                            className="pt-2"
+                        >
                             <button
                                 type="submit"
                                 disabled={loading}
@@ -114,10 +113,10 @@ const Login = () => {
                             >
                                 {loading ? 'Authenticating...' : 'Sign In to Dashboard'}
                             </button>
-                        </div>
+                        </motion.div>
                     </form>
                 </div>
-            </div>
+            </motion.div>
         </div>
     );
 };

@@ -55,11 +55,17 @@ export const getFinancialReports = async (req, res) => {
         const maintenance = await MaintenanceLog.find();
         const vehicles = await Vehicle.find();
 
+        const trips = await Trip.find();
+        const totalRevenue = trips.reduce((acc, trip) => acc + (trip.revenue || 0), 0);
+
         const totalFuelCost = expenses.reduce((acc, exp) => acc + exp.cost, 0);
+        const totalLiters = expenses.reduce((acc, exp) => acc + (exp.liters || 0), 0);
         const totalMaintenanceCost = maintenance.reduce((acc, log) => acc + log.cost, 0);
 
         // Estimate total fleet distance from current odometers (simplification)
-        const totalDistance = vehicles.reduce((acc, v) => acc + v.odometer, 0);
+        const totalDistance = vehicles.reduce((acc, v) => acc + (v.odometer || 0), 0);
+        const fuelEfficiency = totalLiters > 0 ? (totalDistance / totalLiters).toFixed(2) : 0;
+        const totalAcquisitionCost = vehicles.reduce((acc, v) => acc + (v.acquisitionCost || 0), 0);
         const costPerKm = totalDistance > 0 ? (totalFuelCost / totalDistance).toFixed(2) : 0;
 
         // ROI Data: Revenue vs Cost Monthly
@@ -87,28 +93,31 @@ export const getFinancialReports = async (req, res) => {
             }
         ]);
 
+        const tripsAggr = await Trip.aggregate([
+            { $match: { createdAt: { $gte: sixMonthsAgo } } },
+            {
+                $group: {
+                    _id: { $dateToString: { format: "%Y-%m", date: "$createdAt" } },
+                    revenue: { $sum: "$revenue" }
+                }
+            }
+        ]);
+
         const monthlyData = {};
-        expensesAggr.forEach(e => { monthlyData[e._id] = (monthlyData[e._id] || 0) + e.cost; });
-        maintenanceAggr.forEach(m => { monthlyData[m._id] = (monthlyData[m._id] || 0) + m.cost; });
+        expensesAggr.forEach(e => { monthlyData[e._id] = { ...monthlyData[e._id], cost: (monthlyData[e._id]?.cost || 0) + e.cost }; });
+        maintenanceAggr.forEach(m => { monthlyData[m._id] = { ...monthlyData[m._id], cost: (monthlyData[m._id]?.cost || 0) + m.cost }; });
+        tripsAggr.forEach(t => { monthlyData[t._id] = { ...monthlyData[t._id], revenue: (monthlyData[t._id]?.revenue || 0) + t.revenue }; });
 
         const roiData = Object.keys(monthlyData).sort().map(month => ({
             month,
-            cost: monthlyData[month],
-            revenue: monthlyData[month] * 1.5 // Mock revenue based on cost, as revenue isn't tracked in schema
+            cost: monthlyData[month].cost || 0,
+            revenue: monthlyData[month].revenue || 0
         }));
 
-        // Calculate Average Vehicle ROI dynamically
-        // Since revenue is inferred as roughly 1.5x cost in this simplified schema:
-        // Total Estimated Revenue = (Total Fuel + Total Maintenance) * 1.5
-        // ROI = (Net Profit / Total Investment) * 100
-        // Net Profit = Est Revenue - Total Ops Cost
-
-        let avgRoi = 0;
         const totalOpsCost = totalFuelCost + totalMaintenanceCost;
-        if (totalOpsCost > 0) {
-            const estimatedRevenue = totalOpsCost * 1.5;
-            const netProfit = estimatedRevenue - totalOpsCost;
-            avgRoi = ((netProfit / totalOpsCost) * 100).toFixed(1);
+        let vehicleRoi = 0;
+        if (totalAcquisitionCost > 0) {
+            vehicleRoi = (((totalRevenue - totalOpsCost) / totalAcquisitionCost) * 100).toFixed(2);
         }
 
         res.json({
@@ -116,7 +125,8 @@ export const getFinancialReports = async (req, res) => {
             totalMaintenanceCost,
             totalOperationalCost: totalOpsCost,
             costPerKm,
-            avgRoi,
+            fuelEfficiency,
+            avgRoi: vehicleRoi,
             roiData
         });
     } catch (error) {

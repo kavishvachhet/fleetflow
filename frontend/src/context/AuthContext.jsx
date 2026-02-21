@@ -1,5 +1,6 @@
 import { createContext, useState, useEffect } from 'react';
 import axios from 'axios';
+import { toast } from 'sonner';
 
 export const AuthContext = createContext();
 
@@ -19,24 +20,27 @@ export const AuthProvider = ({ children }) => {
 
     const register = async (email, password, role) => {
         try {
-            await axios.post('http://localhost:5000/api/auth/register', { email, password, role });
+            await axios.post(`${import.meta.env.VITE_API_URL}/auth/register`, { email, password, role });
+            toast.success('Registration successful. You can now log in.');
             return { success: true };
         } catch (error) {
-            console.error('Registration failed', error);
-            return { success: false, message: error.response?.data?.message || 'Registration failed' };
+            const msg = error.response?.data?.message || 'Registration failed';
+            toast.error(msg);
+            return { success: false, message: msg };
         }
     };
 
     const login = async (email, password) => {
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/login`, { email, password });
             setUser(res.data.user);
             localStorage.setItem('user', JSON.stringify(res.data.user));
             localStorage.setItem('token', res.data.token);
             axios.defaults.headers.common['Authorization'] = `Bearer ${res.data.token}`;
+            toast.success(`Welcome back, ${res.data.user.email.split('@')[0]}!`);
             return true;
         } catch (error) {
-            console.error('Login failed', error);
+            toast.error('Invalid credentials. Please try again.');
             return false;
         }
     };
@@ -46,6 +50,7 @@ export const AuthProvider = ({ children }) => {
         localStorage.removeItem('user');
         localStorage.removeItem('token');
         delete axios.defaults.headers.common['Authorization'];
+        toast.info('You have been logged out.');
     };
 
     return (

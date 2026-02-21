@@ -1,7 +1,9 @@
 import { useState, useEffect, useContext } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { Plus, DollarSign } from 'lucide-react';
+import { Plus, DollarSign, Trash2 } from 'lucide-react';
+import { toast } from 'sonner';
+import AnimatedModal from '../components/AnimatedModal';
 
 const Expenses = () => {
     const [logs, setLogs] = useState([]);
@@ -13,14 +15,15 @@ const Expenses = () => {
     const [isAddOpen, setIsAddOpen] = useState(false);
     const [isEdit, setIsEdit] = useState(false);
     const [editId, setEditId] = useState(null);
+    const [deleteConfirmId, setDeleteConfirmId] = useState(null);
     const [formData, setFormData] = useState({ vehicleId: '', tripId: '', liters: '', cost: '', date: new Date().toISOString().split('T')[0] });
 
     const fetchData = async () => {
         try {
             const [logsRes, vehiclesRes, tripsRes] = await Promise.all([
-                axios.get('http://localhost:5000/api/expenses'),
-                axios.get('http://localhost:5000/api/vehicles'),
-                axios.get('http://localhost:5000/api/trips')
+                axios.get(`${import.meta.env.VITE_API_URL}/expenses`),
+                axios.get(`${import.meta.env.VITE_API_URL}/vehicles`),
+                axios.get(`${import.meta.env.VITE_API_URL}/trips`)
             ]);
             setLogs(logsRes.data);
             setVehicles(vehiclesRes.data);
@@ -43,24 +46,27 @@ const Expenses = () => {
             if (!dataToSubmit.tripId) delete dataToSubmit.tripId;
 
             if (isEdit) {
-                await axios.put(`http://localhost:5000/api/expenses/${editId}`, dataToSubmit);
+                await axios.put(`${import.meta.env.VITE_API_URL}/expenses/${editId}`, dataToSubmit);
             } else {
-                await axios.post('http://localhost:5000/api/expenses', dataToSubmit);
+                await axios.post(`${import.meta.env.VITE_API_URL}/expenses`, dataToSubmit);
             }
             closeModal();
             fetchData();
+            toast.success(`Expense ${isEdit ? 'updated' : 'logged'} successfully`);
         } catch (error) {
-            alert(error.response?.data?.message || `Error ${isEdit ? 'updating' : 'logging'} expense`);
+            toast.error(error.response?.data?.message || `Error ${isEdit ? 'updating' : 'logging'} expense`);
         }
     };
 
-    const handleDelete = async (id) => {
-        if (!window.confirm("Are you sure you want to delete this expense log?")) return;
+    const handleDelete = async () => {
+        if (!deleteConfirmId) return;
         try {
-            await axios.delete(`http://localhost:5000/api/expenses/${id}`);
+            await axios.delete(`${import.meta.env.VITE_API_URL}/expenses/${deleteConfirmId}`);
             fetchData();
+            setDeleteConfirmId(null);
+            toast.success('Expense log deleted successfully');
         } catch (error) {
-            alert(error.response?.data?.message || 'Error deleting log');
+            toast.error(error.response?.data?.message || 'Error deleting log');
         }
     };
 
@@ -91,7 +97,7 @@ const Expenses = () => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex justify-between items-center bg-white/40 p-4 rounded-xl backdrop-blur-sm border border-white/50 shadow-sm">
                 <h1 className="text-3xl font-bold text-slate-900 font-heading tracking-tight drop-shadow-sm">Expense Tracking</h1>
-                {(user?.role === 'Manager' || user?.role === 'Financial Analyst') && (
+                {user?.role === 'Financial Analyst' && (
                     <button onClick={() => { closeModal(); setIsAddOpen(true); }} className="premium-btn px-4 py-2 rounded-lg flex items-center shadow-sm">
                         <Plus className="w-4 h-4 mr-2" /> Log Expense
                     </button>
@@ -108,7 +114,7 @@ const Expenses = () => {
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trip Route</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Liters</th>
                                 <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Cost ($)</th>
-                                {user?.role === 'Manager' && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
+                                {user?.role === 'Financial Analyst' && <th className="px-6 py-3 text-right text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>}
                             </tr>
                         </thead>
                         <tbody className="bg-white divide-y divide-gray-200">
@@ -130,17 +136,19 @@ const Expenses = () => {
                                             {log.cost.toFixed(2)}
                                         </div>
                                     </td>
-                                    {user?.role === 'Manager' && (
+                                    {user?.role === 'Financial Analyst' && (
                                         <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">
                                             <button onClick={() => handleEdit(log)} className="text-blue-600 hover:text-blue-900 mx-2" title="Edit Log">Edit</button>
-                                            <button onClick={() => handleDelete(log._id)} className="text-red-600 hover:text-red-900 mx-2" title="Delete Log">Delete</button>
+                                            <button onClick={() => setDeleteConfirmId(log._id)} className="text-red-600 hover:text-red-900 mx-2 inline-flex items-center" title="Delete Log">
+                                                <Trash2 className="w-4 h-4" />
+                                            </button>
                                         </td>
                                     )}
                                 </tr>
                             ))}
                             {logs.length === 0 && (
                                 <tr>
-                                    <td colSpan={user?.role === 'Manager' ? "6" : "5"} className="px-6 py-8 text-center text-gray-500">No expense logs found.</td>
+                                    <td colSpan={user?.role === 'Financial Analyst' ? "6" : "5"} className="px-6 py-8 text-center text-gray-500">No expense logs found.</td>
                                 </tr>
                             )}
                         </tbody>
@@ -187,6 +195,21 @@ const Expenses = () => {
                     </div>
                 </div>
             )}
+
+            <AnimatedModal
+                isOpen={deleteConfirmId !== null}
+                onClose={() => setDeleteConfirmId(null)}
+                title="Delete Expense Log"
+                type="danger"
+            >
+                <div className="space-y-6">
+                    <p className="text-slate-600">Are you sure you want to delete this expense entry? This action cannot be undone.</p>
+                    <div className="flex justify-end space-x-3">
+                        <button onClick={() => setDeleteConfirmId(null)} className="px-4 py-2 text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-lg transition-colors font-medium">Cancel</button>
+                        <button onClick={handleDelete} className="px-4 py-2 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-medium shadow-sm shadow-red-500/30">Delete Expense</button>
+                    </div>
+                </div>
+            </AnimatedModal>
         </div>
     );
 };

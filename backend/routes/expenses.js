@@ -7,11 +7,11 @@ const router = express.Router();
 router.use(protect);
 
 router.route('/')
-    .get(getExpenseLogs)
+    .get(authorize('Manager', 'Financial Analyst'), getExpenseLogs)
     .post(authorize('Manager', 'Dispatcher', 'Financial Analyst'), createExpenseLog);
 
 router.route('/:id')
     .put(authorize('Manager', 'Financial Analyst'), updateExpenseLog)
-    .delete(authorize('Manager'), deleteExpenseLog);
+    .delete(authorize('Manager', 'Financial Analyst'), deleteExpenseLog);
 
 export default router;

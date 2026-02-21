@@ -2,12 +2,12 @@ import { useState } from 'react';
 import { useNavigate, useParams, Link } from 'react-router-dom';
 import axios from 'axios';
 import { Lock, ArrowLeft, KeyRound } from 'lucide-react';
+import { toast } from 'sonner';
 
 const ResetPassword = () => {
     const [password, setPassword] = useState('');
     const [confirmPassword, setConfirmPassword] = useState('');
     const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     const { token } = useParams();
@@ -16,29 +16,28 @@ const ResetPassword = () => {
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
-        setError('');
 
         if (password !== confirmPassword) {
-            setError('Passwords do not match');
+            toast.error('Passwords do not match');
             return;
         }
 
         if (password.length < 6) {
-            setError('Password must be at least 6 characters');
+            toast.error('Password must be at least 6 characters');
             return;
         }
 
         setLoading(true);
 
         try {
-            const res = await axios.post(`http://localhost:5000/api/auth/reset-password/${token}`, { password });
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/reset-password/${token}`, { password });
             setMessage(res.data.message);
             // Auto redirect to login after 3 seconds
             setTimeout(() => {
                 navigate('/login');
             }, 3000);
         } catch (err) {
-            setError(err.response?.data?.message || 'Invalid or expired token');
+            toast.error(err.response?.data?.message || 'Invalid or expired token');
         } finally {
             setLoading(false);
         }
@@ -75,12 +74,6 @@ const ResetPassword = () => {
                         </div>
                     ) : (
                         <form className="space-y-6" onSubmit={handleSubmit}>
-                            {error && (
-                                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
-                                    <p className="text-sm text-red-700">{error}</p>
-                                </div>
-                            )}
-
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     New Password

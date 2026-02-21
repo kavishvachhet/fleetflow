@@ -1,6 +1,7 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { useContext } from 'react';
 import { AuthContext, AuthProvider } from './context/AuthContext';
+import { Toaster } from 'sonner';
 import Layout from './components/Layout';
 import Login from './pages/Login';
 import Register from './pages/Register';
@@ -96,6 +97,7 @@ const AppRoutes = () => {
 const App = () => {
   return (
     <AuthProvider>
+      <Toaster position="top-right" richColors closeButton theme="light" />
       <Router>
         <AppRoutes />
       </Router>

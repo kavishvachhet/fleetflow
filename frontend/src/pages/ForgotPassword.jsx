@@ -2,24 +2,24 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import axios from 'axios';
 import { Mail, ArrowLeft } from 'lucide-react';
+import { toast } from 'sonner';
 
 const ForgotPassword = () => {
     const [email, setEmail] = useState('');
     const [message, setMessage] = useState('');
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setMessage('');
-        setError('');
         setLoading(true);
 
         try {
-            const res = await axios.post('http://localhost:5000/api/auth/forgot-password', { email });
+            const res = await axios.post(`${import.meta.env.VITE_API_URL}/auth/forgot-password`, { email });
             setMessage(res.data.message);
+            toast.success('Reset link sent to your email.');
         } catch (err) {
-            setError(err.response?.data?.message || 'Error processing request');
+            toast.error(err.response?.data?.message || 'Error processing request');
         } finally {
             setLoading(false);
         }
@@ -58,11 +58,6 @@ const ForgotPassword = () => {
                         </div>
                     ) : (
                         <form className="space-y-6" onSubmit={handleSubmit}>
-                            {error && (
-                                <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-md">
-                                    <p className="text-sm text-red-700">{error}</p>
-                                </div>
-                            )}
                             <div>
                                 <label className="block text-sm font-medium text-gray-700 mb-1">
                                     Email address

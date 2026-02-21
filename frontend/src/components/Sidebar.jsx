@@ -9,11 +9,11 @@ const Sidebar = () => {
     const links = [
         { to: '/', icon: Home, label: 'Dashboard', roles: ['Manager', 'Dispatcher', 'Safety Officer', 'Financial Analyst'] },
         { to: '/vehicles', icon: Truck, label: 'Vehicles', roles: ['Manager', 'Dispatcher'] },
-        { to: '/drivers', icon: Users, label: 'Drivers', roles: ['Manager', 'Safety Officer'] },
+        { to: '/drivers', icon: Users, label: 'Drivers', roles: ['Manager', 'Dispatcher', 'Safety Officer'] },
         { to: '/trips', icon: Map, label: 'Trips', roles: ['Manager', 'Dispatcher'] },
-        { to: '/maintenance', icon: Wrench, label: 'Maintenance', roles: ['Manager', 'Dispatcher'] },
+        { to: '/maintenance', icon: Wrench, label: 'Maintenance', roles: ['Manager', 'Dispatcher', 'Financial Analyst'] },
         { to: '/expenses', icon: FileText, label: 'Expenses', roles: ['Manager', 'Financial Analyst'] },
-        { to: '/analytics', icon: PieChart, label: 'Analytics', roles: ['Manager', 'Financial Analyst'] },
+        { to: '/analytics', icon: PieChart, label: 'Analytics', roles: ['Financial Analyst'] },
     ];
 
     return (

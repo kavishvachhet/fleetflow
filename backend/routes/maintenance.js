@@ -1,5 +1,5 @@
 import express from 'express';
-import { getMaintenanceLogs, createMaintenanceLog, updateMaintenanceLog, deleteMaintenanceLog } from '../controllers/maintenanceController.js';
+import { getMaintenanceLogs, createMaintenanceLog, updateMaintenanceLog, deleteMaintenanceLog, completeMaintenanceLog } from '../controllers/maintenanceController.js';
 import { protect, authorize } from '../middleware/authMiddleware.js';
 
 const router = express.Router();
@@ -7,11 +7,13 @@ const router = express.Router();
 router.use(protect);
 
 router.route('/')
-    .get(getMaintenanceLogs)
-    .post(authorize('Manager'), createMaintenanceLog);
+    .get(authorize('Manager', 'Dispatcher', 'Financial Analyst'), getMaintenanceLogs)
+    .post(authorize('Manager', 'Dispatcher'), createMaintenanceLog);
 
 router.route('/:id')
-    .put(authorize('Manager'), updateMaintenanceLog)
-    .delete(authorize('Manager'), deleteMaintenanceLog);
+    .put(authorize('Manager', 'Dispatcher'), updateMaintenanceLog)
+    .delete(authorize('Manager', 'Dispatcher'), deleteMaintenanceLog);
+
+router.post('/:id/complete', authorize('Manager', 'Dispatcher'), completeMaintenanceLog);
 
 export default router;

@@ -1,7 +1,7 @@
 import { useState, useEffect, useContext, useRef } from 'react';
 import axios from 'axios';
 import { AuthContext } from '../context/AuthContext';
-import { TrendingUp, TrendingDown, DollarSign, Activity } from 'lucide-react';
+import { TrendingUp, TrendingDown, DollarSign, Activity, Flame } from 'lucide-react';
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, BarChart, Bar, XAxis, YAxis, CartesianGrid, Legend } from 'recharts';
 import { useReactToPrint } from 'react-to-print';
 
@@ -13,7 +13,7 @@ const Analytics = () => {
 
     const fetchFinancials = async () => {
         try {
-            const res = await axios.get('http://localhost:5000/api/analytics/financials');
+            const res = await axios.get(`${import.meta.env.VITE_API_URL}/analytics/financials`);
             setFinancials(res.data);
         } catch (error) {
             console.error('Error fetching financials', error);
@@ -45,7 +45,7 @@ const Analytics = () => {
         <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-700">
             <div className="flex justify-between items-center bg-white/40 p-4 rounded-xl backdrop-blur-sm border border-white/50 shadow-sm">
                 <h1 className="text-3xl font-bold text-slate-900 font-heading tracking-tight drop-shadow-sm">Operational Analytics & Reports</h1>
-                {user?.role === 'Manager' && (
+                {user?.role === 'Financial Analyst' && (
                     <button onClick={() => exportPDF()} className="premium-btn px-5 py-2.5 rounded-xl shadow-md flex items-center">
                         Export PDF Report
                     </button>
@@ -60,7 +60,7 @@ const Analytics = () => {
                         <p className="text-slate-500 font-medium">Generated on {new Date().toLocaleDateString()}</p>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3 mb-8">
+                    <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4 mb-8">
                         <div className="glass-panel p-6 flex items-center group hover:-translate-y-1 transition-all duration-300" style={{ backgroundColor: 'white', border: '1px solid #e2e8f0' }}>
                             <div className="p-4 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-500 shadow-lg shadow-blue-500/30 text-white mr-5 group-hover:scale-110 transition-transform">
                                 <DollarSign className="w-8 h-8" />
@@ -86,6 +86,15 @@ const Analytics = () => {
                             <div>
                                 <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Fleet Cost-per-km</p>
                                 <p className="text-3xl font-bold font-heading text-slate-800">${financials?.costPerKm || 0}</p>
+                            </div>
+                        </div>
+                        <div className="glass-panel p-6 flex items-center group hover:-translate-y-1 transition-all duration-300" style={{ backgroundColor: 'white', border: '1px solid #e2e8f0' }}>
+                            <div className="p-4 rounded-xl bg-gradient-to-br from-amber-400 to-orange-600 shadow-lg shadow-orange-500/30 text-white mr-5 group-hover:scale-110 transition-transform">
+                                <Flame className="w-8 h-8" />
+                            </div>
+                            <div>
+                                <p className="text-xs font-semibold uppercase tracking-wider text-slate-500 mb-1">Fuel Efficiency</p>
+                                <p className="text-3xl font-bold font-heading text-slate-800">{financials?.fuelEfficiency || 0} <span className="text-sm font-normal text-slate-500">km/L</span></p>
                             </div>
                         </div>
                     </div>
@@ -126,8 +135,8 @@ const Analytics = () => {
                                 <BarChart data={roiData} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#E5E7EB" />
                                     <XAxis dataKey="month" axisLine={false} tickLine={false} />
-                                    <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `$${value}`} />
-                                    <Tooltip formatter={(value) => `$${value}`} />
+                                    <YAxis axisLine={false} tickLine={false} tickFormatter={(value) => `₹${value}`} />
+                                    <Tooltip formatter={(value) => `₹${value}`} />
                                     <Legend />
                                     <Bar dataKey="revenue" fill="#10B981" radius={[4, 4, 0, 0]} name="Revenue" />
                                     <Bar dataKey="cost" fill="#EF4444" radius={[4, 4, 0, 0]} name="Operational Cost" />

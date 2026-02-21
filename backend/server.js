@@ -32,8 +32,8 @@ const MONGO_URI = process.env.MONGO_URI || 'mongodb://localhost:27017/fleetflow'
 mongoose.connect(MONGO_URI)
     .then(() => {
         console.log('Connected to MongoDB');
-        app.listen(PORT, () => {
-            console.log(`Server running on port ${PORT}`);
+        app.listen(PORT, '0.0.0.0', () => {
+            console.log(`Server running on port ${PORT} and listening on all interfaces (0.0.0.0)`);
         });
     })
     .catch((err) => console.error('MongoDB connection error:', err));

@@ -7,6 +7,7 @@ const vehicleSchema = new mongoose.Schema({
     licensePlate: { type: String, required: true, unique: true },
     maxCapacity: { type: Number, required: true },
     odometer: { type: Number, required: true },
+    acquisitionCost: { type: Number, required: true, default: 0 },
     status: {
         type: String,
         enum: ['Available', 'On Trip', 'In Shop', 'Out of Service'],
