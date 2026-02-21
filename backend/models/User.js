@@ -14,7 +14,9 @@ const userSchema = new mongoose.Schema({
         type: String,
         enum: ['Manager', 'Dispatcher', 'Safety Officer', 'Financial Analyst'],
         required: true
-    }
+    },
+    resetPasswordToken: String,
+    resetPasswordExpires: Date
 }, { timestamps: true });
 
 export default mongoose.model('User', userSchema);

@@ -17,6 +17,16 @@ export const AuthProvider = ({ children }) => {
         setLoading(false);
     }, []);
 
+    const register = async (email, password, role) => {
+        try {
+            await axios.post('http://localhost:5000/api/auth/register', { email, password, role });
+            return { success: true };
+        } catch (error) {
+            console.error('Registration failed', error);
+            return { success: false, message: error.response?.data?.message || 'Registration failed' };
+        }
+    };
+
     const login = async (email, password) => {
         try {
             const res = await axios.post('http://localhost:5000/api/auth/login', { email, password });
@@ -39,7 +49,7 @@ export const AuthProvider = ({ children }) => {
     };
 
     return (
-        <AuthContext.Provider value={{ user, login, logout, loading }}>
+        <AuthContext.Provider value={{ user, login, register, logout, loading }}>
             {children}
         </AuthContext.Provider>
     );

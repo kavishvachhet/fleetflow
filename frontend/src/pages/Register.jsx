@@ -1,37 +1,28 @@
-import { useState, useContext, useEffect } from 'react';
-import { useNavigate, Link, useLocation } from 'react-router-dom';
+import { useState, useContext } from 'react';
+import { useNavigate, Link } from 'react-router-dom';
 import { AuthContext } from '../context/AuthContext';
 import { Truck } from 'lucide-react';
 
-const Login = () => {
+const Register = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [role, setRole] = useState('Dispatcher');
     const [error, setError] = useState('');
-    const [successMsg, setSuccessMsg] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const { login } = useContext(AuthContext);
+    const { register } = useContext(AuthContext);
     const navigate = useNavigate();
-    const location = useLocation();
-
-    useEffect(() => {
-        if (location.state?.message) {
-            setSuccessMsg(location.state.message);
-            // Clear state gracefully without full reload
-            navigate(location.pathname, { replace: true, state: {} });
-        }
-    }, [location, navigate]);
 
     const handleSubmit = async (e) => {
         e.preventDefault();
         setError('');
         setLoading(true);
 
-        const success = await login(email, password);
-        if (success) {
-            navigate('/');
+        const result = await register(email, password, role);
+        if (result.success) {
+            navigate('/login', { state: { message: 'Registration successful! Please sign in.' } });
         } else {
-            setError('Invalid email or password');
+            setError(result.message || 'Registration failed');
         }
         setLoading(false);
     };
@@ -49,20 +40,15 @@ const Login = () => {
                         <Truck className="h-10 w-10 text-blue-600" />
                     </div>
                     <h2 className="text-4xl font-extrabold text-slate-900 font-heading tracking-tight drop-shadow-sm">
-                        Welcome Back
+                        Create Account
                     </h2>
                     <p className="mt-3 text-base text-slate-600 font-medium">
-                        Log in to your FleetFlow Command Center
+                        Join the FleetFlow Operations Team
                     </p>
                 </div>
 
                 <div className="glass-panel p-8 sm:p-10">
                     <form className="space-y-6" onSubmit={handleSubmit}>
-                        {successMsg && (
-                            <div className="bg-emerald-50 border-l-4 border-emerald-500 p-4 rounded-r-xl">
-                                <p className="text-sm font-medium text-emerald-800">{successMsg}</p>
-                            </div>
-                        )}
                         {error && (
                             <div className="bg-red-50 border-l-4 border-red-500 p-4 rounded-r-xl">
                                 <p className="text-sm font-medium text-red-800">{error}</p>
@@ -90,6 +76,7 @@ const Login = () => {
                             <input
                                 type="password"
                                 required
+                                minLength="6"
                                 value={password}
                                 onChange={(e) => setPassword(e.target.value)}
                                 className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all shadow-sm placeholder-slate-400 text-slate-900"
@@ -97,12 +84,26 @@ const Login = () => {
                             />
                         </div>
 
-                        <div className="flex items-center justify-between pt-2">
-                            <Link to="/register" className="text-sm font-semibold text-blue-600 hover:text-blue-700 transition-colors">
-                                Create an account
-                            </Link>
-                            <Link to="/forgot-password" className="text-sm font-semibold text-slate-500 hover:text-slate-700 transition-colors">
-                                Forgot password?
+                        <div>
+                            <label className="block text-sm font-semibold text-slate-700 mb-1.5">
+                                Desired Role
+                            </label>
+                            <select
+                                required
+                                value={role}
+                                onChange={(e) => setRole(e.target.value)}
+                                className="w-full px-4 py-3 bg-white/50 border border-slate-200 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-500/50 focus:border-blue-500 focus:bg-white transition-all shadow-sm text-slate-900 appearance-none"
+                            >
+                                <option value="Manager">Manager HQ</option>
+                                <option value="Dispatcher">Dispatcher</option>
+                                <option value="Safety Officer">Safety Officer</option>
+                                <option value="Financial Analyst">Financial Analyst</option>
+                            </select>
+                        </div>
+
+                        <div className="flex items-center justify-center pt-2">
+                            <Link to="/login" className="text-sm font-semibold text-slate-500 hover:text-blue-600 transition-colors">
+                                Already have an account? Sign in
                             </Link>
                         </div>
 
@@ -112,7 +113,7 @@ const Login = () => {
                                 disabled={loading}
                                 className={`w-full flex justify-center py-3.5 px-4 rounded-xl shadow-lg text-sm font-bold text-white bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-blue-500 transform transition-all ${loading ? 'opacity-70 cursor-not-allowed' : 'hover:-translate-y-0.5 hover:shadow-blue-500/30'}`}
                             >
-                                {loading ? 'Authenticating...' : 'Sign In to Dashboard'}
+                                {loading ? 'Registering...' : 'Complete Registration'}
                             </button>
                         </div>
                     </form>
@@ -122,4 +123,4 @@ const Login = () => {
     );
 };
 
-export default Login;
+export default Register;
